@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>HH Project Intelligence Hub</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial;background:#0a0e1a;color:white}
+header{background:linear-gradient(135deg,#1a237e,#0d47a1);padding:20px;text-align:center}
+.logo{width:55px;height:55px;background:linear-gradient(135deg,#64b5f6,#1565c0);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;margin:0 auto 8px;border:3px solid #64b5f6}
+header h1{color:#64b5f6;font-size:22px}
+header p{color:#90caf9;font-size:12px;margin-top:4px}
+.upload-area{margin:15px;padding:15px;background:#1e2a3a;border-radius:12px;border:2px dashed #2a3f5f;text-align:center}
+.upload-btn{background:#1565c0;color:white;padding:10px 20px;border-radius:8px;cursor:pointer;border:none;font-size:13px;margin:5px;display:inline-block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px}
+.card{background:#1e2a3a;border-radius:12px;padding:15px;border:1px solid #2a3f5f}
+.card h2{color:#64b5f6;font-size:13px;margin-bottom:8px}
+.value{font-size:26px;font-weight:bold}
+.label{color:#90caf9;font-size:11px;margin-top:4px}
+.green{color:#4caf50}.red{color:#f44336}.yellow{color:#ff9800}.blue{color:#64b5f6}
+.chat-section{margin:15px}
+.chat-box{background:#1e2a3a;border-radius:12px;padding:15px;height:350px;overflow-y:auto;margin-bottom:10px;border:1px solid #2a3f5f}
+.msg-user{background:#1565c0;padding:10px 14px;border-radius:10px 10px 0 10px;margin:8px 0;max-width:75%;font-size:13px;line-height:1.5}
+.msg-ai{background:#263238;padding:10px 14px;border-radius:10px 10px 10px 0;margin:8px 0;max-width:85%;margin-right:0;margin-left:auto;font-size:13px;line-height:1.6;border-right:3px solid #64b5f6}
+.chat-input{display:flex;gap:8px}
+.chat-input input{flex:1;background:#1e2a3a;border:1px solid #2a3f5f;color:white;padding:12px;border-radius:8px;font-size:13px}
+.chat-input button{background:#1565c0;color:white;border:none;padding:12px 18px;border-radius:8px;cursor:pointer;font-size:13px}
+.report-btn{background:#1b5e20;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;margin:5px}
+.status{color:#90caf9;font-size:12px;margin-top:8px}
+footer{text-align:center;padding:15px;background:#1a237e;color:#90caf9;font-size:11px;margin-top:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">HH</div>
+  <h1>HH Project Intelligence Hub</h1>
+  <p>AI-Powered Project Analysis | محلل المشاريع الذكي</p>
+</header>
+
+<div class="upload-area">
+  <p style="color:#90caf9;margin-bottom:12px;font-size:13px">ارفع ملف Baseline الخاص بمشروعك (Excel)</p>
+  <label class="upload-btn">
+    رفع ملف Excel
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+  </label>
+  <button class="report-btn" onclick="generateReport()">تقرير حالة الموقع</button>
+  <div id="fileStatus" class="status">لم يتم رفع أي ملف بعد</div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>نسبة التنفيذ الفعلي</h2>
+    <div class="value green" id="progress">--</div>
+    <div class="label">Performance % Complete</div>
+  </div>
+  <div class="card">
+    <h2>نسبة التخطيط</h2>
+    <div class="value blue" id="planned">--</div>
+    <div class="label">Schedule % Complete</div>
+  </div>
+  <div class="card">
+    <h2>أنشطة متأخرة</h2>
+    <div class="value red" id="delayed">--</div>
+    <div class="label">Delayed Activities</div>
+  </div>
+  <div class="card">
+    <h2>SPI</h2>
+    <div class="value yellow" id="spi">--</div>
+    <div class="label">Schedule Performance Index</div>
+  </div>
+  <div class="card">
+    <h2>CPI</h2>
+    <div class="value yellow" id="cpi">--</div>
+    <div class="label">Cost Performance Index</div>
+  </div>
+  <div class="card">
+    <h2>مستوى الخطر</h2>
+    <div class="value red" id="risk">--</div>
+    <div class="label">Risk Level</div>
+  </div>
+</div>
+
+<div class="chat-section">
+  <div class="card" style="margin-bottom:12px;padding:12px">
+    <h2>المحادثة مع محلل المشاريع الذكي</h2>
+  </div>
+  <div class="chat-box" id="chatBox">
+    <div class="msg-ai">مرحبا! انا محلل المشاريع الذكي<br><br>
+    ارفع ملف الـ Baseline بتاعك وبعدين قولي اي حاجة زي:<br>
+    - "اليوم 10 يونيو تم الانتهاء من الاعمدة"<br>
+    - "تم تنفيذ 10% من البلاطة محور A"<br>
+    - "ايه الانشطة المتاخرة؟"<br>
+    - "اعمللي تقرير كامل"<br><br>
+    وانا هحللهالك واديك الصورة الكاملة للمشروع</div>
+  </div>
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="اكتب هنا... مثال: اليوم 10 يونيو تم تنفيذ 50% من الحفر" onkeypress="if(event.key==='Enter' && !isLoading)sendMsg()">
+    <button onclick="sendMsg()">ارسال</button>
+  </div>
+</div>
+
+<footer>
+  <p>2026 HH Project Intelligence Hub. All Rights Reserved.</p>
+  <p>Created by Eng: Hazem Ibrahim | +20 10 62160306</p>
+</footer>
+
+<script>
+var projectData = "";
+var chatHistory = [];
+var TODAY = "2026-06-10";
+var isLoading = false;
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onerror = function() { addMsg('ai','خطأ في قراءة الملف'); };
+  reader.onload = function(ev) {
+    try {
+      var wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array', cellDates:true});
+      var sheet = wb.Sheets[wb.SheetNames[0]];
+      var data = XLSX.utils.sheet_to_json(sheet);
+      processData(data, file.name);
+    } catch(err) {
+      addMsg('ai','خطأ في قراءة الملف: ' + err.message);
+    }

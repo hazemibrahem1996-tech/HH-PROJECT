@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>HH Project Intelligence Hub</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial;background:#0a0e1a;color:white}
+header{background:linear-gradient(135deg,#1a237e,#0d47a1);padding:20px;text-align:center}
+.logo{width:55px;height:55px;background:linear-gradient(135deg,#64b5f6,#1565c0);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;margin:0 auto 8px;border:3px solid #64b5f6}
+header h1{color:#64b5f6;font-size:22px}
+header p{color:#90caf9;font-size:12px;margin-top:4px}
+.upload-area{margin:15px;padding:15px;background:#1e2a3a;border-radius:12px;border:2px dashed #2a3f5f;text-align:center}
+.upload-btn{background:#1565c0;color:white;padding:10px 20px;border-radius:8px;cursor:pointer;border:none;font-size:13px;margin:5px;display:inline-block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px}
+.card{background:#1e2a3a;border-radius:12px;padding:15px;border:1px solid #2a3f5f}
+.card h2{color:#64b5f6;font-size:13px;margin-bottom:8px}
+.value{font-size:26px;font-weight:bold}
+.label{color:#90caf9;font-size:11px;margin-top:4px}
+.green{color:#4caf50}.red{color:#f44336}.yellow{color:#ff9800}.blue{color:#64b5f6}
+.chat-section{margin:15px}
+.chat-box{background:#1e2a3a;border-radius:12px;padding:15px;height:350px;overflow-y:auto;margin-bottom:10px;border:1px solid #2a3f5f}
+.msg-user{background:#1565c0;padding:10px 14px;border-radius:10px 10px 0 10px;margin:8px 0;max-width:75%;font-size:13px;line-height:1.5}
+.msg-ai{background:#263238;padding:10px 14px;border-radius:10px 10px 10px 0;margin:8px 0;max-width:85%;margin-right:0;margin-left:auto;font-size:13px;line-height:1.6;border-right:3px solid #64b5f6}
+.chat-input{display:flex;gap:8px}
+.chat-input input{flex:1;background:#1e2a3a;border:1px solid #2a3f5f;color:white;padding:12px;border-radius:8px;font-size:13px}
+.chat-input button{background:#1565c0;color:white;border:none;padding:12px 18px;border-radius:8px;cursor:pointer;font-size:13px}
+.report-btn{background:#1b5e20;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;margin:5px}
+.status{color:#90caf9;font-size:12px;margin-top:8px}
+footer{text-align:center;padding:15px;background:#1a237e;color:#90caf9;font-size:11px;margin-top:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">HH</div>
+  <h1>HH Project Intelligence Hub</h1>
+  <p>AI-Powered Project Analysis | محلل المشاريع الذكي</p>
+</header>
+
+<div class="upload-area">
+  <p style="color:#90caf9;margin-bottom:12px;font-size:13px">ارفع ملف BaseLine الخاص بمشروعك (Excel)</p>
+  <label class="upload-btn">
+    رفع ملف Excel
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+  </label>
+  <button class="report-btn" onclick="generateReport()">تقرير حالة الموقع</button>
+  <div id="fileStatus" class="status">لم يتم رفع أي ملف بعد</div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>نسبة التنفيذ الفعلي</h2>
+    <div class="value green" id="progress">--</div>
+    <div class="label">Performance % Complete</div>
+  </div>
+  <div class="card">
+    <h2>نسبة التخطيط</h2>
+    <div class="value blue" id="planned">--</div>
+    <div class="label">Schedule % Complete</div>
+  </div>
+  <div class="card">
+    <h2>أنشطة متأخرة</h2>
+    <div class="value red" id="delayed">--</div>
+    <div class="label">Delayed Activities</div>
+  </div>
+  <div class="card">
+    <h2>SPI</h2>
+    <div class="value yellow" id="spi">--</div>
+    <div class="label">Schedule Performance Index</div>
+  </div>
+  <div class="card">
+    <h2>CPI</h2>
+    <div class="value yellow" id="cpi">--</div>
+    <div class="label">Cost Performance Index</div>
+  </div>
+  <div class="card">
+    <h2>مستوى الخطر</h2>
+    <div class="value red" id="risk">--</div>
+    <div class="label">Risk Level</div>
+  </div>
+</div>
+
+<div class="chat-section">
+  <div class="card" style="margin-bottom:12px;padding:12px">
+    <h2>المحادثة مع محلل المشاريع الذكي</h2>
+  </div>
+  <div class="chat-box" id="chatBox">
+    <div class="msg-ai">مرحبا! انا محلل المشاريع الذكي<br><br>
+    ارفع ملف الـ Baseline بتاعك وبعدين قولي اي حاجة زي:<br>
+    - "اليوم 10 يونيو تم الانتهاء من الاعمدة"<br>
+    - "تم تنفيذ 10% من البلاطة محور A"<br>
+    - "ايه الانشطة المتاخرة؟"<br>
+    - "اعمللي تقرير كامل"<br><br>
+    وانا هحللهالك واديك الصورة الكاملة للمشروع</div>
+  </div>
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="اكتب هنا... مثال: اليوم 10 يونيو تم تنفيذ 50% من الحفر" onkeypress="if(event.key==='Enter' && !isLoading)sendMsg()">
+    <button onclick="sendMsg()">ارسال</button>
+  </div>
+</div>
+
+<footer>
+  <p>2026 HH Project Intelligence Hub. All Rights Reserved.</p>
+  <p>Created by Eng: Hazem Ibrahim | +20 10 62160306</p>
+</footer>
+
+<script>
+var projectData = "";
+var chatHistory = [];
+var TODAY = "2026-06-10";
+var isLoading = false;
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onerror = function() { addMsg('ai','خطأ في قراءة الملف'); };
+  reader.onload = function(ev) {
+    try {
+      var wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array', cellDates:true});
+      var sheet = wb.Sheets[wb.SheetNames[0]];
+      var data = XLSX.utils.sheet_to_json(sheet);
+      processData(data, file.name);
+    } catch(err) {
+      addMsg('ai','خطأ في قراءة الملف: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function processData(data, fileName) {
+  var delayed=0, notStarted=0, totalPV=0, totalEV=0, totalAC=0;
+  var totalSchedule=0, totalPerf=0, count=0, problemActivities=[];
+
+  data.forEach(function(row) {
+    var finishDate = row['BL Project Finish']||row['Finish']||row['finish']||row['Finish Date'];
+    var startDate  = row['BL Project Start'] ||row['Start'] ||row['start'] ||row['Start Date'];
+    var rawPerf  = parseFloat(row['Performance % Complete']||row['performance']||row['Progress']||0);
+    var progress = rawPerf > 1 ? rawPerf : rawPerf*100;
+    var rawSched = parseFloat(row['Schedule % Complete']||row['schedule']||0);
+    var schedPct = rawSched > 1 ? rawSched : rawSched*100;
+    var pv = parseFloat(row['Planned Value Cost']||row['Planned Value']||row['PV']||row['Budgeted Total Cost']||0);
+    var ev = parseFloat(row['Earned Value Cost'] ||row['Earned Value'] ||row['EV']||0);
+    var ac = parseFloat(row['Actual Total Cost']  ||row['Actual Cost']  ||row['AC']||0);
+    var name        = row['Activity Name']||row['activity_name']||row['Name']||'نشاط';
+    var responsible = row['Responsible']||row['responsible']||row['المسؤول']||'غير محدد';
+    var critical    = row['Critical']||row['critical']||'';
+    var totalFloat  = parseFloat(row['Total Float']||row['total_float']||0);
+
+    totalPV+=pv; totalEV+=ev; totalAC+=ac;
+    totalSchedule+=schedPct; totalPerf+=progress; count++;
+
+    if (finishDate && progress < 100) {
+      var finish=new Date(finishDate), today=new Date(TODAY);
+      if (finish < today) { delayed++; problemActivities.push({name,responsible,issue:'متأخر',days:Math.round((today-finish)/86400000),progress,critical,totalFloat}); }
+    }
+    if (startDate && progress === 0) {
+      var start=new Date(startDate), today2=new Date(TODAY);
+      if (start < today2) { notStarted++; problemActivities.push({name,responsible,issue:'لم يبدأ',days:Math.round((today2-start)/86400000),progress,critical,totalFloat}); }
+    }
+  });
+
+  var spi = totalPV > 0 ? (totalEV/totalPV).toFixed(2) : 'N/A';
+  var cpi = totalAC > 0 ? (totalEV/totalAC).toFixed(2) : 'N/A';
+  var avgPerf  = count > 0 ? (totalPerf/count).toFixed(1)+'%' : '--';
+  var avgSched = count > 0 ? (totalSchedule/count).toFixed(1)+'%' : '--';
+  var spiNum   = parseFloat(spi);
+  var riskLevel = isNaN(spiNum)?'N/A':spiNum<0.8?'CRITICAL':spiNum<0.9?'HIGH':spiNum<1?'MEDIUM':'LOW';
+
+  document.getElementById('progress').textContent = avgPerf;
+  document.getElementById('planned').textContent  = avgSched;
+  document.getElementById('delayed').textContent  = delayed+notStarted;
+  document.getElementById('spi').textContent = spi;
+  document.getElementById('cpi').textContent = cpi;
+  document.getElementById('risk').textContent = riskLevel;
+
+  var problemText = '';
+  problemActivities.slice(0,20).forEach(function(a) {
+    problemText += '- '+a.name+' | '+a.issue+' بـ '+a.days+' يوم | تنفيذ: '+a.progress+'% | مسؤول: '+a.responsible+'\n';
+  });
+
+  projectData =
+    'اسم الملف: '+fileName+'\nعدد الأنشطة: '+count+'\n'+
+    'متوسط التنفيذ الفعلي: '+avgPerf+'\nمتوسط التخطيط: '+avgSched+'\n'+
+    'SPI: '+spi+'\nCPI: '+cpi+'\n'+
+    'أنشطة متأخرة: '+delayed+'\nأنشطة لم تبدأ: '+notStarted+'\n'+
+    'إجمالي PV: '+totalPV.toFixed(0)+'\nإجمالي EV: '+totalEV.toFixed(0)+'\nإجمالي AC: '+totalAC.toFixed(0)+'\n'+
+    'مستوى الخطر: '+riskLevel+'\nتاريخ اليوم: '+TODAY+'\n\n'+
+    'الأنشطة المشكلة:\n'+problemText+'\n'+
+    'بيانات أول 10 أنشطة:\n'+JSON.stringify(data.slice(0,10),null,2);
+
+  document.getElementById('fileStatus').innerHTML = '✅ تم تحليل: '+fileName+' | '+count+' نشاط';
+  addMsg('ai','تم رفع وتحليل الملف: '+fileName+'\n\nالنتائج الأولية:\n- عدد الأنشطة: '+count+'\n- التنفيذ الفعلي: '+avgPerf+'\n- التخطيط: '+avgSched+'\n- أنشطة متأخرة: '+delayed+'\n- أنشطة لم تبدأ: '+notStarted+'\n- SPI: '+spi+' | CPI: '+cpi+'\n- مستوى الخطر: '+riskLevel+'\n\nاسألني عن أي نشاط أو اكتب "تقرير كامل"');
+}
+
+async function sendMsg() {
+  if (isLoading) return;
+  var input = document.getElementById('chatInput');
+  var msg = input.value.trim();
+  if (!msg) return;
+
+  addMsg('user', msg);
+  input.value = '';
+  isLoading = true;
+
+  var thinking = addMsg('ai', '⏳ جاري التحليل...');
+  chatHistory.push({role:'user', content: msg});
+
+  var systemPrompt =
+    'أنت خبير متخصص في إدارة المشاريع الإنشائية وتحليل EVM وCPM. اسمك محلل HH الذكي. تتكلم بالعربي دائماً.\n'+
+    'تاريخ اليوم: '+TODAY+'\n\n'+
+    'بيانات المشروع المرفوع:\n'+(projectData||'لم يتم رفع ملف بعد - اطلب من المستخدم رفع ملف Excel')+'\n\n'+
+    'قواعد مهمة:\n'+
+    '- لو المستخدم قال إنه أنهى نشاط معين حدّث تحليلك بناءً على ده\n'+
+    '- لو سأل عن نشاط متأخر قوله اسم النشاط وعدد أيام التأخير والمسؤول عنه\n'+
+    '- لو قال تقرير اعمله تقرير كامل ومنظم\n'+
+    '- اذكر دائماً SPI وCPI والأنشطة الحرجة\n'+
+    '- كن دقيق ومهني في ردودك';
+
+  try {
+    var response = await fetch('/.netlify/functions/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemPrompt: systemPrompt,
+        message: msg,
+        history: chatHistory
+      })
+    });
+
+    var data = await response.json();
+
+    if (data.error) {
+      thinking.textContent = 'خطأ: ' + data.error;
+    } else {
+      thinking.textContent = data.reply;
+      chatHistory.push({role:'assistant', content: data.reply});
+    }
+
+  } catch(err) {
+    thinking.textContent = 'خطأ في الاتصال: ' + err.message;
+  }
+
+  isLoading = false;
+}
+
+async function generateReport() {
+  if (!projectData) { addMsg('ai','ارفع ملف Excel الأول عشان أعمل التقرير'); return; }
+  document.getElementById('chatInput').value = 'اعمللي تقرير كامل عن حالة الموقع فيه كل المعلومات والأنشطة المتأخرة والتوصيات';
+  sendMsg();
+}
+
+function addMsg(type, text) {
+  var box = document.getElementById('chatBox');
+  var div = document.createElement('div');
+  div.className = type === 'user' ? 'msg-user' : 'msg-ai';
+  div.style.whiteSpace = 'pre-wrap';
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+</script>
+</body>
+</html>
